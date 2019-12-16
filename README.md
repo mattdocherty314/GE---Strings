@@ -26,7 +26,7 @@ faster or slower than the estimate compared to single core performance.
 
 ## Version History
 ### v1.0.0
-*-* Added the base genetic evolution program
+* Added the base genetic evolution program
 
 ## TODO
 * Allow the program to be run within the terminal
