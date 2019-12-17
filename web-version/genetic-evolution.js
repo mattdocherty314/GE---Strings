@@ -63,7 +63,7 @@ function getValues() {
 }
 
 function predictTime(numGen, numSpecies, wantGene, element) {
-    let seconds = (numGen * numSpecies * (wantGene.length/20))/100;
+    let seconds = (numGen * numSpecies * (wantGene.length/20))/2000;
     element.innerHTML += `Estimated Time to Complete: ${seconds} seconds,<br/>`;
     let minutes = seconds/60;
     element.innerHTML += `OR ${minutes} minutes,<br/>`;
@@ -162,7 +162,8 @@ function removeLowerHalf(fitnessSpecies, species) {
 }
 
 function breedGenes(species) {
-    for (let s = 0; s < species.length; s+=2) {
+    speciesLength = species.length;
+    for (let s = 0; s < speciesLength; s+=2) {
         let randomSlicePos;
         if (species[s].length >= species[s+1].length) {
             randomSlicePos = integerRandom(1, species[s+1].length-1);
