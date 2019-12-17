@@ -28,26 +28,22 @@ function customSort(fitnessSpecies) {
     while (!arraySorted) {
         swapped = false;
         for (let f = 0; f < fitnessSpecies-2; f++) {
-            let speciesAFitness = fitnessSpecies[f].split(":")[1];
-            let speciesBFitness = fitnessSpecies[f+1].split(":")[1];
+            let speciesAFitness = parseFloat(fitnessSpecies[f].split(":")[1]);
+            let speciesBFitness = parseFloat(fitnessSpecies[f+1].split(":")[1]);
+            if (speciesAFitness > speciesBFitness) {
+                let fitnessSpeciesTEMP = fitnessSpecies[f];
+                fitnessSpecies[f] = fitnessSpecies[f+1];
+                fitnessSpecies[f+1] = fitnessSpeciesTEMP;
+                swapped = true;
+            }
+        }
+        if (!swapped) {
+            arraySorted = true;
         }
     }
+    return fitnessSpecies;
 }
-/* 
-# - customSort -
-def customSort(fitnessSpecies):
-    arraySorted = False
-    while (not arraySorted):
-        swapped = False
-        for a in range(len(fitnessSpecies)-2):
-            if (float(fitnessSpecies[a][0:4])) > float(fitnessSpecies[a+1][0:4]):
-                fitnessTEMP = fitnessSpecies[a]
-                fitnessSpecies[a] = fitnessSpecies[a+1]
-                fitnessSpecies[a+1] = fitnessTEMP
-                swapped = True
-        if (not swapped):
-            arraySorted = True
-            */
+
 function integerRandom(a, b) {
     return parseInt(Math.random()*(b-a)+a);
 }
@@ -107,8 +103,17 @@ function startEvolution(values, progress, output) {
         output.innerHTML += "Fitness:\n";
         output.innerHTML += `${speciesFitness.join(", ")}\n`;
 
-        species = [];
+        speciesFitness = customSort(speciesFitness);
+        species = removeLowerHalf(speciesFitness, species, wantGene);
+        speciesFitness = [];
+
+        species = breedGenes(species);
+        species = createMutations(species, mutateChance, chromosomes);
+
         generation++;
+    }
+    if (species.indexOf(wantGene) !== -1) {
+        progress.innerHTML += "It has been successful!";
     }
 }
 
@@ -130,7 +135,7 @@ function evaluateFitness(species, wantGene) {
         fitness = 0;
         for (let g = 0; g < wantGene.length; g++) {
             if (g < species[s].length) {
-                if (species[s].split("")[g] == wantGene.split("")[g]) {
+                if (species[s].split("")[g] === wantGene.split("")[g]) {
                     fitness += 10;
                 }
                 else {
@@ -144,52 +149,54 @@ function evaluateFitness(species, wantGene) {
 
     return speciesFitness;
 }
-/*
-# --- ADDITIONAL FUNCTIONS ---
 
+function removeLowerHalf(fitnessSpecies, species) {
+    for (let f = 0; f < parseInt(fitnessSpecies.length/2); f++) {
+        speciesNum = parseInt(fitnessSpecies[f].split(":")[0]);
+        species[speciesNum] = null;
+    }
+    species = species.filter((s) => {
+        return s != null;
+    });
+    return species;
+}
 
+function breedGenes(species) {
+    for (let s = 0; s < species.length; s+=2) {
+        let randomSlicePos;
+        if (species[s].length >= species[s+1].length) {
+            randomSlicePos = integerRandom(1, species[s+1].length-1);
+        } else {
+            randomSlicePos = integerRandom(1, species[s].length-1);
+        }
+        let A1_geneSpliceTEMP = species[s].slice(0, randomSlicePos);
+        let B1_geneSpliceTEMP = species[s+1].slice(0, randomSlicePos);
+        let A2_geneSpliceTEMP = species[s].slice(randomSlicePos, species[s].length);
+        let B2_geneSpliceTEMP = species[s+1].slice(randomSlicePos, species[s+1].length);
 
+        species.push(A1_geneSpliceTEMP+B2_geneSpliceTEMP);
+        species.push(A2_geneSpliceTEMP+B1_geneSpliceTEMP);
+    }
+    return species;
+}
 
-# --- RUN PROGRAM ---
-    # - Remove Lower Half -
-    customSort(fitnessSpecies)
-    for j in range(int(len(species)/2)):
-        species.pop(int(fitnessSpecies[j][(len(str(len(wantGene)))+5):((len(str(len(wantGene)))+4)+(len(str(len(species)))))]))
-    fitnessSpecies = []
-
-    # - Breed First and Second -
-    for m in range(0, int(len(species)), 2):
-        if (len(species[m]) >= len(species[m+1])):
-            random_splicePosition = random.randint(1, (len(species[m+1])-1))
-        else:
-            random_splicePosition = random.randint(1, (len(species[m])-1))
-        A1_geneSpliceTEMP = species[m][:random_splicePosition]
-        B1_geneSpliceTEMP = species[m+1][:random_splicePosition]
-        A2_geneSpliceTEMP = species[m][random_splicePosition:]
-        B2_geneSpliceTEMP = species[m+1][random_splicePosition:]
-        species.append(A1_geneSpliceTEMP+B2_geneSpliceTEMP)
-        species.append(A2_geneSpliceTEMP+B1_geneSpliceTEMP)
-
-    # - Add Mutations
-
-    for p in range(len(species)):
-        check_mutateChance = random.randint(1, mutateChance)
-        if (check_mutateChance == 1):
-            mutateType = random.randint(1,8)
-            speciesTEMP = list(species[p])
-            if ((mutateType == 1) and (len(speciesTEMP) > 2)):
-                speciesTEMP.pop(random.randint(0, len(speciesTEMP)-1))
-            elif ((mutateType == 2) and (len(wantGene)+len(wantGene)-2)):
-                speciesTEMP.append(chromosomes[random.randint(0, len(chromosomes)-1)])
-            else:
-                speciesTEMP[random.randint(1, (len(speciesTEMP)))-1] = chromosomes[random.randint(1, (len(chromosomes)))-1]
-            species[p] = "".join(speciesTEMP)
-    
-    # - Additional Instructions - 
-    generation += 1
-s.close()
-if (wantGene in species):
-    print("It has been successful!")
-*/
+function createMutations(species, mutateChance, chromosomes) {
+    for (let s = 0; s < species.length; s++) {
+        let checkMutateChance = integerRandom(1, mutateChance);
+        if (checkMutateChance === 1) {
+            mutateType = integerRandom(1, 8);
+            speciesTEMP = species[s].split("");
+            if (mutateType === 1 && speciesTEMP.length > 2) {
+                speciesTEMP[integerRandom(0, speciesTEMP.length-1)];
+            } else if (mutateType === 2) {
+                speciesTEMP.push(chromosomes[integerRandom(0, chromosomes.length-1)]);
+            } else {
+                speciesTEMP[integerRandom(1, speciesTEMP.length)-1] = speciesTEMP[integerRandom(1, speciesTEMP.length)-1];
+            }
+            species[s] = speciesTEMP.join("");
+        }
+    }
+    return species;
+}
 
 window.addEventListener("load", pageLoad);
