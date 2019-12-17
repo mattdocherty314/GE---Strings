@@ -10,7 +10,7 @@ function main() {
     outputElement.innerHTML = "";
 
     let values = getValues();
-    
+
     outputElement.innerHTML += `wantGene = '${values["want-gene"]}'\n`;
     outputElement.innerHTML += `${values["num-gen"]} generations\n`;
     outputElement.innerHTML += `${values["num-species"]} species\n`;
@@ -18,13 +18,36 @@ function main() {
 
     predictTime(values["num-gen"], values["num-species"], values["want-gene"], progressElement);
 
-    startEvolution(values, progressElement, outputElement);
+    window.setTimeout(() => {
+        startEvolution(values, progressElement, outputElement);
+    }, 1);
 }
 
-function customSort() {
-
+function customSort(fitnessSpecies) {
+    let arraySorted = false;
+    while (!arraySorted) {
+        swapped = false;
+        for (let f = 0; f < fitnessSpecies-2; f++) {
+            let speciesAFitness = fitnessSpecies[f].split(":")[1];
+            let speciesBFitness = fitnessSpecies[f+1].split(":")[1];
+        }
+    }
 }
-
+/* 
+# - customSort -
+def customSort(fitnessSpecies):
+    arraySorted = False
+    while (not arraySorted):
+        swapped = False
+        for a in range(len(fitnessSpecies)-2):
+            if (float(fitnessSpecies[a][0:4])) > float(fitnessSpecies[a+1][0:4]):
+                fitnessTEMP = fitnessSpecies[a]
+                fitnessSpecies[a] = fitnessSpecies[a+1]
+                fitnessSpecies[a+1] = fitnessTEMP
+                swapped = True
+        if (not swapped):
+            arraySorted = True
+            */
 function integerRandom(a, b) {
     return parseInt(Math.random()*(b-a)+a);
 }
@@ -64,9 +87,6 @@ function startEvolution(values, progress, output) {
                          '(', ')', '-', '_', '=', '+', '[', '{', ']',
                          '}', ';', "'", ',', '.'];
     
-    let species = [];
-    let fitnessSpecies = [];
-    
     let generation = 0;
 
     let numGen = values["num-gen"];
@@ -74,14 +94,21 @@ function startEvolution(values, progress, output) {
     let mutateChance = values["mutate-chance"];
     let wantGene = values["want-gene"];
 
-    species = generateRandomSpecies(numSpecies, wantGene, chromosomes);
+    let species = generateRandomSpecies(numSpecies, wantGene, chromosomes);
 
     while (generation < numGen) {
-        output.innerHTML += "Generation: 0\n";
         output.innerHTML += "-------------------------------------------------------------------\n";
+        output.innerHTML += `Generation: ${generation}\n`;
         output.innerHTML += "Species:\n(new)\n";
         output.innerHTML += `${species.join(", ")}\n`;
 
+        let speciesFitness = evaluateFitness(species, wantGene);
+        
+        output.innerHTML += "Fitness:\n";
+        output.innerHTML += `${speciesFitness.join(", ")}\n`;
+
+        species = [];
+        generation++;
     }
 }
 
@@ -97,87 +124,33 @@ function generateRandomSpecies(numSpecies, wantGene, chromosomes) {
     return species;
 }
 
-function 
+function evaluateFitness(species, wantGene) {
+    speciesFitness = []
+    for (let s = 0; s < species.length; s++) {
+        fitness = 0;
+        for (let g = 0; g < wantGene.length; g++) {
+            if (g < species[s].length) {
+                if (species[s].split("")[g] == wantGene.split("")[g]) {
+                    fitness += 10;
+                }
+                else {
+                    fitness -= 0.5;
+                }
+            }
+        }
+        fitness -= Math.abs(species[s].length-wantGene.length)*0.2;
+        speciesFitness.push(`${s}:${fitness}`);
+    }
+
+    return speciesFitness;
+}
 /*
 # --- ADDITIONAL FUNCTIONS ---
 
-# - customSort -
-def customSort(fitnessSpecies):
-    arraySorted = False
-    while (not arraySorted):
-        swapped = False
-        for a in range(len(fitnessSpecies)-2):
-            if (float(fitnessSpecies[a][0:4])) > float(fitnessSpecies[a+1][0:4]):
-                fitnessTEMP = fitnessSpecies[a]
-                fitnessSpecies[a] = fitnessSpecies[a+1]
-                fitnessSpecies[a+1] = fitnessTEMP
-                swapped = True
-        if (not swapped):
-            arraySorted = True
 
 
 
 # --- RUN PROGRAM ---
-
-# - Generate Random Species -
-for a in range(speciesNumber):
-    gene = ""
-    for b in range(random.randint(2, (len(wantGene)+len(wantGene)-2))):
-        gene += chromosomes[random.randint(0, len(chromosomes))-1]
-    species.append(gene)
-
-while generation < generationNumber:
-    print("Generation: " + str(generation))
-    s.write("\n----------------------------------------------------------------------------------------------------")
-    s.write("\nGeneration: " + str(generation))
-    s.write("\n")
-    s.write("Species: \n(new)\n")
-    s.write(str(species))
-
-    # - Evaluate Fitness -
-    for d in range(len(species)):
-        fitness = 0
-        for e in range(len(wantGene)):
-            if (e < len(species[d])):
-                if (species[d][e] == wantGene[e]):
-                    fitness += 10
-                else:
-                    fitness -= 0.5
-        fitness -= ((abs(len(species[d])-len(wantGene)))*0.2)
-        fitnessSpecies.append(str(fitness)+":"+str(d))
-
-    # - Format \fitnessSpecies -
-    for g in range(len(fitnessSpecies)):
-        fitnessTEMP, labelTEMP = fitnessSpecies[g].split(":")
-        fitness2TEMP = list(fitnessTEMP)
-        label2TEMP = list(labelTEMP)
-        fitness3TEMP = []
-        if (fitness2TEMP[0] != "-"):
-            fitness2TEMP.reverse()
-            fitness2TEMP.append("+")
-            fitness2TEMP.reverse()
-        for h in range(len(str(len(species)))-(len(label2TEMP))):
-            label2TEMP.reverse()
-            label2TEMP.append("0")
-            label2TEMP.reverse()
-        for g in range((len(str(len(wantGene))))-(len(fitness2TEMP))):
-             fitness2TEMP = list(fitness3TEMP)
-             fitness3TEMP = fitness2TEMP[0]
-             fitness3TEMP.append("0")
-             fitness3TEMP = "".join(fitness3TEMP)
-             fitness2TEMP.reverse()
-             fitness2TEMP.append(fitness3TEMP)
-        
-        fitnessTEMP = "".join(fitness2TEMP)
-        
-        fitnessTEMP = fitnessTEMP[0:(len(str(len(wantGene)))+4)]
-        labelTEMP = "".join(label2TEMP)
-        fitnessSpecies[g] = fitnessTEMP+":"+labelTEMP
-        
-    s.write("\n")
-    s.write("Fitness: \n")
-    s.write(str(fitnessSpecies))
-
     # - Remove Lower Half -
     customSort(fitnessSpecies)
     for j in range(int(len(species)/2)):
